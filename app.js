@@ -21,15 +21,13 @@
 		40: "forty",
 		50: "fifty"
 	};
-	app.controller('ClockController', ["$scope", function($scope){
+	app.controller('ClockController', ["$scope", "$timeout", function($scope, $timeout){
 		var self = this;
 		this.time = 0;
-		this.mil = false;
-		var time = new Date();
-		var hours = time.getHours();
-		var minutes = time.getMinutes();
+		self.mil = false;
 		var ampm = "";
 		var greeting = "";
+		$scope.tickInterval = 1000;
 
 		var transform = function(number, type){
 			if (number > 15 && number < 20){
@@ -52,8 +50,11 @@
 			return number;
 		}
 
-		$scope.$watch(function(){return self.mil}, function(milValue, oldMilValue){
-			if (!milValue){
+		var tick = function(){
+			var time = new Date();
+			var hours = time.getHours();
+			var minutes = time.getMinutes();
+			if (!self.mil){
 				greeting = "Howdy! The time is "
 				if (hours > 12) {
 					hours = hours - 12;
@@ -71,5 +72,13 @@
 				ampm = "";
 			}
 			self.time = greeting + transform(hours, "h") + " " + transform(minutes, "m") + ampm + ".";
+			$timeout(tick, $scope.tickInterval);
+		}
+
+		$scope.$watch(function(){return self.mil}, function(milValue, oldMilValue){
+			self.mil = milValue;
+			tick();
 		})
+
+		$timeout(tick, $scope.tickInterval);
 	}]);
